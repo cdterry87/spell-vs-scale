@@ -43,3 +43,7 @@ The action icons in `src/assets/icons` are placeholders sliced from `images/icon
 ## Balance
 
 All numbers in `src/game/config.js`, `spells.js` and `dragonAbilities.js` are **provisional** and meant to be tuned through playtesting.
+
+## Deployment
+
+`.github/workflows/deploy.yml` tests, builds and publishes `dist/` to GitHub Pages on every push to `main`. In the repository settings, **Pages → Build and deployment → Source** must be set to **GitHub Actions**. The Vite `base` is `./`, so the build works under the `/spell-vs-scale/` project path without changes.
