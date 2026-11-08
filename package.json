@@ -1,0 +1,36 @@
+{
+  "name": "spell-vs-scale",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Spell vs Scale — a turn-based wizard versus dragon battle built with Vue 3.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --write src"
+  },
+  "dependencies": {
+    "pinia": "^4.1.0",
+    "vue": "^3.5.45"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/test-utils": "^2.5.1",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.12.0",
+    "globals": "^17.14.0",
+    "jsdom": "^31.0.0",
+    "prettier": "^3.9.10",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}
