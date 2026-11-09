@@ -396,25 +396,14 @@ onBeforeUnmount(() => {
   opacity: 0.88;
 }
 
-/* ---------- compact HUD for short / narrow landscape ---------- */
-@container (max-height: 560px) or (max-width: 780px) {
-  /* A container query can't restyle the container itself, so set the vars on its children. */
-  .battle__world,
-  .hud,
-  .turn-indicator,
-  .battle__log {
-    --hud-w: 100cqw;
-    --hud-h: max(38cqh, 136px);
-    --wiz-h: min(50cqh, 28cqw);
-    --drg-h: min(58cqh, 40cqw);
-  }
-
+/* ---------- shared compact HUD (phones, either orientation) ---------- */
+@container (max-height: 560px) or (max-width: 780px) or (orientation: portrait) {
   .hud {
     display: grid;
-    grid-template-columns: minmax(150px, 27cqw) 1fr;
-    gap: 1.5cqw;
-    padding: 1.6cqh max(1.5cqw, var(--safe-right)) max(1.6cqh, var(--safe-bottom))
-      max(1.5cqw, var(--safe-left));
+    align-content: start;
+    gap: 6px;
+    padding: 6px max(10px, var(--safe-right)) max(6px, var(--safe-bottom))
+      max(10px, var(--safe-left));
     background: linear-gradient(180deg, #2a160c, #120804);
     border-top: 2px solid var(--c-border);
     box-shadow: inset 0 1px 0 rgba(255, 215, 122, 0.3);
@@ -436,30 +425,164 @@ onBeforeUnmount(() => {
     font-size: 12px;
   }
 
-  .hud__actions {
-    font-size: 10px;
-    --slot-icon: min(10cqh, 8cqw);
+  .hud__wizard :deep(.wizard-hud) {
+    --bar-height: 16px;
+    gap: 4px;
   }
 
-  .hud__actions :deep(.action-bar__slots) {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-auto-rows: 1fr;
-    row-gap: 0.3em;
+  .hud__actions {
+    font-size: 9px;
   }
 
   .hud__actions :deep(.slot__cost) {
     display: none;
   }
 
+  .hud__actions :deep(.slot__key) {
+    font-size: 0.85em;
+  }
+
+  /* Smaller dragon nameplate and health bar. */
+  :deep(.dragon-hud__plate) {
+    padding: 0 1.6em 0.1em;
+  }
+
+  :deep(.dragon-hud__name) {
+    font-size: 0.85rem;
+  }
+
+  :deep(.dragon-hud__frame) {
+    padding: 0.55em 0.6em 0.3em;
+    font-size: 0.7rem;
+    --bar-height: 11px;
+    border-radius: 7px;
+  }
+
+  :deep(.dragon-hud__statuses) {
+    margin-top: 3px;
+    font-size: 0.68rem;
+  }
+
   .battle__log {
-    left: auto;
-    right: max(2cqw, var(--safe-right));
-    bottom: calc(var(--hud-h) + 6cqh + 1.5em);
-    max-width: 44cqw;
+    font-size: 0.72rem;
+  }
+
+  .turn-indicator {
+    font-size: 0.8rem;
+  }
+}
+
+/* ---------- phone landscape ---------- */
+@container (orientation: landscape) and ((max-height: 560px) or (max-width: 780px)) {
+  /* A container query can't restyle the container itself, so set the vars on its children. */
+  .battle__world,
+  .hud,
+  .hud__actions,
+  .turn-indicator,
+  .battle__log {
+    --hud-w: 100cqw;
+    --slot-icon: min(11.5cqh, 6.4cqw);
+    /* 6px pad + 16px bars + 6px gap + icon + ~13px label + 6px pad */
+    --hud-h: calc(var(--slot-icon) + 50px + var(--safe-bottom));
+    --wiz-h: min(60cqh, 30cqw);
+    --drg-h: min(56cqh, 40cqw);
+  }
+
+  /* HP and MP side by side, statuses after them. */
+  .hud__wizard :deep(.wizard-hud) {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hud__wizard :deep(.wizard-hud > .bar) {
+    flex: 1 1 0;
+  }
+
+  .hud__wizard :deep(.wizard-hud__statuses) {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+
+  /* All ten slots on one row. */
+  .hud__actions :deep(.action-bar__slots) {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 2px;
   }
 
   :deep(.dragon-hud) {
-    width: 64cqw;
+    width: 46cqw;
+    top: 4px;
+  }
+
+  /* In the open ground between the wizard and the dragon. */
+  .battle__log {
+    left: 31cqw;
+    right: auto;
+    bottom: calc(var(--hud-h) + 2cqh);
+    max-width: 28cqw;
+  }
+}
+
+/* ---------- phone / tablet portrait ---------- */
+@container (orientation: portrait) {
+  .battle__world,
+  .hud,
+  .hud__actions,
+  .turn-indicator,
+  .battle__log {
+    --hud-w: 100cqw;
+    --slot-icon: min(12.5cqw, 6.5cqh);
+    /* two bars + statuses + two rows of slots + padding */
+    --hud-h: calc(2 * var(--slot-icon) + 112px + var(--safe-bottom));
+    --wiz-h: min(32cqh, 62cqw);
+    --drg-h: min(30cqh, 64cqw);
+  }
+
+  /* HP and MP full width, actions in two rows of five below. */
+  .hud__actions :deep(.action-bar__slots) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    row-gap: 4px;
+  }
+
+  :deep(.dragon-hud) {
+    width: calc(100cqw - 24px);
+    top: max(6px, env(safe-area-inset-top, 0px));
+  }
+
+  /* Dragon sits high, just under its health bar. */
+  .arena :deep(.sprite--dragon) {
+    top: 9cqh;
+    bottom: auto;
+    right: 0;
+    /* Tilt the head down toward the wizard below. `rotate` composes with the
+       transform-based attack/hit nudges instead of replacing them. */
+    rotate: -12deg;
+    transform-origin: 50% 50%;
+  }
+
+  .arena :deep(.sprite--wizard) {
+    left: 2cqw;
+  }
+
+  /* Right side, stacked just above the "Your turn" label. */
+  .battle__log.battle__log {
+    left: auto;
+    right: max(10px, var(--safe-right));
+    bottom: calc(var(--hud-h) + 1.2cqh + 2.6em);
+    max-width: 60cqw;
+    align-items: flex-end;
+  }
+
+  .battle__log :deep(.log__feed) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .battle__log :deep(.log__list) {
+    width: min(36em, 88cqw);
+    max-height: 30cqh;
   }
 }
 
