@@ -101,8 +101,9 @@ export const SPELLS = Object.freeze([
     icon: cureIcon,
     kind: 'support',
     mpCost: 10,
+    heal: [12, 15],
     countsAsSpell: true,
-    description: 'Remove all negative statuses. Grants immunity to them for one turn.',
+    description: 'Remove all negative statuses (immune to them for one turn) and restore 12–15 HP.',
   },
   {
     id: 'mana-potion',

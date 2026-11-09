@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useGameStore } from '../stores/game.js';
 import { GAME_CONFIG } from '../game/config.js';
+import { hasStatus } from '../game/statusEffects.js';
 import { useBattlePresentation } from '../composables/useBattlePresentation.js';
 import { useReducedMotion } from '../composables/useSceneAtmosphere.js';
 import SceneBackground from './SceneBackground.vue';
@@ -22,9 +23,26 @@ import hudFrame from '../../images/hud.webp';
 
 const game = useGameStore();
 const battle = computed(() => game.battle);
+/*
+ * Freeze visually lingers until the dragon's next turn begins: the status itself expires at the
+ * end of the skipped turn (granting immunity on that same dragon turn), so the ice stays on
+ * through the following player turn and melts when the next dragon turn starts.
+ */
+const dragonFrozen = computed(() => {
+  const { dragon, actorTurns } = game.battle;
+  return (
+    hasStatus(dragon, 'freeze') ||
+    dragon.immunities.some(
+      (i) => i.statusId === 'freeze' && i.grantedAtActorTurn === actorTurns.dragon,
+    )
+  );
+});
+const dragonBurning = computed(() => hasStatus(game.battle.dragon, 'burn'));
+const wizardBurning = computed(() => hasStatus(game.battle.wizard, 'burn'));
+const dragonBlind = computed(() => hasStatus(game.battle.dragon, 'blind'));
 const reducedMotion = useReducedMotion();
 
-const { floats, poses, hits, shakeKey, warning, announcement } = useBattlePresentation(
+const { floats, poses, auras, hits, shakeKey, warning, announcement } = useBattlePresentation(
   () => game.battle.log,
 );
 
@@ -121,10 +139,12 @@ onBeforeUnmount(() => {
         <CharacterSprite
           character="dragon"
           side="right"
-          :label="GAME_CONFIG.dragon.name"
+          :label="dragonFrozen ? `${GAME_CONFIG.dragon.name} (frozen)` : GAME_CONFIG.dragon.name"
           :pose="poses.dragon"
           :images="dragonImages"
           :hit-count="hits.dragon"
+          :frozen="dragonFrozen"
+          :burning="dragonBurning"
           :class="{
             'sprite--enraged': game.dragonEnraged,
             'sprite--charging': game.fireStormCharging,
@@ -140,6 +160,9 @@ onBeforeUnmount(() => {
           :pose="poses.wizard"
           :images="wizardImages"
           :hit-count="hits.wizard"
+          :burning="wizardBurning"
+          :obscured="dragonBlind"
+          :aura="auras.wizard"
           :class="{ 'sprite--crystal': battle.crystallizeActiveForNextDragonTurn }"
         >
           <FloatingCombatText class="floats--wizard" :items="wizardFloats" />
@@ -262,10 +285,6 @@ onBeforeUnmount(() => {
   left: 0;
 }
 
-.arena :deep(.sprite--enraged .sprite__img) {
-  filter: drop-shadow(0 0 22px rgba(255, 40, 20, 0.85)) drop-shadow(0 18px 18px rgba(0, 0, 0, 0.55));
-}
-
 .arena :deep(.sprite--charging)::after {
   content: '';
   position: absolute;
@@ -282,11 +301,6 @@ onBeforeUnmount(() => {
   );
   animation: pulse-glow 0.8s ease-in-out infinite;
   mix-blend-mode: screen;
-}
-
-.arena :deep(.sprite--crystal .sprite__img) {
-  filter: drop-shadow(0 0 14px rgba(150, 225, 255, 0.95))
-    drop-shadow(0 18px 18px rgba(0, 0, 0, 0.55));
 }
 
 .arena :deep(.floats--wizard) {

@@ -382,10 +382,18 @@ function resolveSupport(state, spell, rng) {
     });
   } else if (spell.id === 'cure') {
     const removed = removeAllNegativeStatuses(wizard, state.actorTurns.wizard);
-    const message = removed.length
+    const healed = applyHeal(wizard, rollInt(...spell.heal, rng));
+    state.statistics.healingDone += healed;
+    const cured = removed.length
       ? `Cure removes ${removed.map((id) => STATUS_DEFS[id].name).join(', ')}. Immune for one turn.`
-      : 'Cure is cast, but there was nothing to cure.';
-    emit(state, 'wizard', 'cure', message, { action: spell.id, target: 'wizard', removed });
+      : 'Cure finds nothing to cure.';
+    const message = healed ? `${cured} Restores ${healed} HP.` : cured;
+    emit(state, 'wizard', 'cure', message, {
+      action: spell.id,
+      target: 'wizard',
+      removed,
+      amount: healed,
+    });
   }
 }
 

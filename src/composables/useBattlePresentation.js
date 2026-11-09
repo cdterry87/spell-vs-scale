@@ -1,7 +1,14 @@
 import { onBeforeUnmount, reactive, ref, watch } from 'vue';
 
 const WIZARD_ATTACKS = new Set(['bash', 'immolate', 'thunder', 'blizzard', 'arcanum']);
-const WIZARD_CASTS = new Set(['crystallize', 'heal', 'cure', 'mana-potion']);
+// Support actions and the aura colour each shows on the wizard (matches its icon).
+const WIZARD_CAST_AURAS = {
+  crystallize: 'arcane',
+  heal: 'heal',
+  cure: 'cure',
+  'mana-potion': 'mana',
+};
+const AURA_MS = 1400;
 
 /**
  * Turns committed combat log events into short-lived visual cues: floating numbers,
@@ -11,6 +18,7 @@ const WIZARD_CASTS = new Set(['crystallize', 'heal', 'cure', 'mana-potion']);
 export function useBattlePresentation(getLog) {
   const floats = ref([]);
   const poses = reactive({ wizard: 'idle', dragon: 'idle' });
+  const auras = reactive({ wizard: null });
   const hits = reactive({ wizard: 0, dragon: 0 });
   const shakeKey = ref(0);
   const warning = ref(null);
@@ -57,7 +65,14 @@ export function useBattlePresentation(getLog) {
     const { type, target, amount, action, actor } = event;
 
     if (actor === 'wizard' && WIZARD_ATTACKS.has(action)) pose('wizard', 'attack', 900);
-    if (actor === 'wizard' && WIZARD_CASTS.has(action)) pose('wizard', 'cast', 800);
+    if (actor === 'wizard' && WIZARD_CAST_AURAS[action]) {
+      pose('wizard', 'cast', AURA_MS);
+      const aura = WIZARD_CAST_AURAS[action];
+      auras.wizard = aura;
+      later(() => {
+        if (auras.wizard === aura) auras.wizard = null;
+      }, AURA_MS);
+    }
     if (actor === 'dragon' && (type === 'damage' || type === 'miss')) pose('dragon', 'attack', 420);
 
     switch (type) {
@@ -80,6 +95,10 @@ export function useBattlePresentation(getLog) {
         break;
       case 'mana':
         addFloat('wizard', `+${amount} MP`, 'mana', delay);
+        break;
+      case 'cure':
+        addFloat('wizard', 'Cured', 'crystal', delay);
+        if (amount > 0) addFloat('wizard', `+${amount}`, 'heal', delay + 300);
         break;
       case 'miss':
         addFloat(target, 'Miss', 'miss', delay + 150);
@@ -135,5 +154,5 @@ export function useBattlePresentation(getLog) {
     timers.clear();
   });
 
-  return { floats, poses, hits, shakeKey, warning, announcement };
+  return { floats, poses, auras, hits, shakeKey, warning, announcement };
 }

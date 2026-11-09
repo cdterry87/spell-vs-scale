@@ -156,6 +156,23 @@ describe('Heal and Cure', () => {
     expect(state.wizard.mp).toBe(W.maxMp - S.cure.mpCost);
     expect(state.phase).toBe('dragonTurn');
     expect(state.log.at(-1).message).toMatch(/nothing to cure/);
+    expect(state.statistics.healingDone).toBe(0); // already at full HP
+  });
+
+  it('Cure removes statuses and heals within its range, counting only actual HP', () => {
+    const state = newBattle();
+    state.wizard.hp = W.maxHp - 100;
+    state.wizard.statuses.push({ id: 'burn', remainingAffectedTurns: 2, appliedAtActorTurn: 0 });
+    performPlayerAction(state, 'cure', constantRng(MAX_ROLL));
+    expect(state.wizard.statuses).toHaveLength(0);
+    expect(state.wizard.hp).toBe(W.maxHp - 100 + S.cure.heal[1]);
+    expect(state.statistics.healingDone).toBe(S.cure.heal[1]);
+
+    state.phase = 'playerTurn';
+    state.wizard.hp = W.maxHp - 1;
+    performPlayerAction(state, 'cure', constantRng(MAX_ROLL));
+    expect(state.wizard.hp).toBe(W.maxHp);
+    expect(state.statistics.healingDone).toBe(S.cure.heal[1] + 1);
   });
 });
 
