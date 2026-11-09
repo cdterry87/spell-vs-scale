@@ -11,6 +11,14 @@ import {
 } from '../game/combat.js';
 import { scriptedRng, constantRng } from './helpers.js';
 
+// Formula tests pin their own multipliers so they keep testing the rule, not the balance.
+const RULES = {
+  baseMissChance: 0.05,
+  blindMissChance: 0.5,
+  enrageDamageMultiplier: 1.5,
+  crystallizeDamageMultiplier: 0.5,
+};
+
 describe('random damage', () => {
   it('rolls inclusive integer ranges', () => {
     expect(rollInt(3, 6, constantRng(0))).toBe(3);
@@ -25,30 +33,30 @@ describe('random damage', () => {
   });
 
   it('applies Enrage then Crystallize and rounds once', () => {
-    expect(calculateDamage(15, {})).toBe(15);
-    expect(calculateDamage(15, { enraged: true })).toBe(23); // 22.5 → 23
-    expect(calculateDamage(15, { crystallized: true })).toBe(8); // 7.5 → 8
-    expect(calculateDamage(15, { enraged: true, crystallized: true })).toBe(11); // 11.25 → 11
+    expect(calculateDamage(15, {}, RULES)).toBe(15);
+    expect(calculateDamage(15, { enraged: true }, RULES)).toBe(23); // 22.5 → 23
+    expect(calculateDamage(15, { crystallized: true }, RULES)).toBe(8); // 7.5 → 8
+    expect(calculateDamage(15, { enraged: true, crystallized: true }, RULES)).toBe(11); // 11.25 → 11
   });
 });
 
 describe('accuracy', () => {
   it('misses on the base 5% check', () => {
-    expect(rollHit({}, scriptedRng([0.01]))).toEqual({ hit: false, reason: 'miss' });
-    expect(rollHit({}, scriptedRng([0.06]))).toEqual({ hit: true, reason: null });
+    expect(rollHit({}, scriptedRng([0.01]), RULES)).toEqual({ hit: false, reason: 'miss' });
+    expect(rollHit({}, scriptedRng([0.06]), RULES)).toEqual({ hit: true, reason: null });
   });
 
   it('adds an independent 50% Blind check', () => {
-    expect(rollHit({ blinded: true }, scriptedRng([0.5, 0.4]))).toEqual({
+    expect(rollHit({ blinded: true }, scriptedRng([0.5, 0.4]), RULES)).toEqual({
       hit: false,
       reason: 'blind',
     });
-    expect(rollHit({ blinded: true }, scriptedRng([0.5, 0.6]))).toEqual({
+    expect(rollHit({ blinded: true }, scriptedRng([0.5, 0.6]), RULES)).toEqual({
       hit: true,
       reason: null,
     });
-    expect(missChance({ blinded: true })).toBeCloseTo(0.525);
-    expect(missChance({})).toBeCloseTo(0.05);
+    expect(missChance({ blinded: true }, RULES)).toBeCloseTo(0.525);
+    expect(missChance({}, RULES)).toBeCloseTo(0.05);
   });
 });
 

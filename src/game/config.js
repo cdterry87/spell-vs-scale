@@ -10,7 +10,7 @@ export const GAME_CONFIG = Object.freeze({
   enrageDamageMultiplier: 1.5,
   enrageAttackCharges: 3,
   enrageStatusResistancePoints: 10,
-  crystallizeDamageMultiplier: 0.65,
+  crystallizeDamageMultiplier: 0.5,
   crystallizeStatusChanceMultiplier: 0.5,
   fireStormCooldown: 4,
   arcanumCooldown: 3,

@@ -19,6 +19,10 @@ onMounted(() => playButton.value?.focus({ preventScroll: true }));
     <div class="menu__content">
       <SceneTitleImage class="menu__title" :src="menuTitle" text="Spell vs Scale" />
       <p class="menu__tagline">One wizard. One dragon. Only one leaves the cavern.</p>
+      <p class="menu__credit">
+        Developed by Chase Terry. See more at
+        <a href="https://chaseterry.com" target="_blank" rel="noopener">chaseterry.com</a>
+      </p>
       <button ref="play" type="button" class="btn btn--primary menu__play" @click="emit('play')">
         Play
       </button>
@@ -67,6 +71,24 @@ onMounted(() => playButton.value?.focus({ preventScroll: true }));
   text-shadow: var(--shadow-text);
   text-align: center;
   letter-spacing: 0.04em;
+}
+
+.menu__credit {
+  margin: calc(-1 * clamp(4px, 1.5cqh, 18px)) 0 0;
+  font-size: clamp(0.8rem, 2cqh, 1.05rem);
+  color: var(--c-ink-dim);
+  text-shadow: var(--shadow-text);
+  text-align: center;
+}
+
+.menu__credit a {
+  color: var(--c-gold-bright);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.menu__credit a:hover {
+  color: #fff;
 }
 
 .menu__play {

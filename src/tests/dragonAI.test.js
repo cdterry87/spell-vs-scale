@@ -6,21 +6,22 @@ import {
   selectWeightedAttack,
 } from '../game/dragonAI.js';
 import { createBattleState } from '../game/turnEngine.js';
-import { constantRng } from './helpers.js';
+import { constantRng, pickRoll } from './helpers.js';
 
 const freshDragon = () => createBattleState().dragon;
 
 describe('Enrage thresholds', () => {
   it('unlock strictly below 75/50/25% and only once each', () => {
     const dragon = freshDragon();
-    dragon.hp = 262.5; // exactly 75% of 350
+    const max = dragon.maxHp;
+    dragon.hp = max * 0.75; // exactly 75%
     expect(checkEnrageThresholds(dragon)).toBe(0);
-    dragon.hp = 262;
+    dragon.hp = max * 0.75 - 0.5;
     expect(checkEnrageThresholds(dragon)).toBe(1);
     expect(checkEnrageThresholds(dragon)).toBe(0);
-    dragon.hp = 175; // exactly 50%
+    dragon.hp = max * 0.5; // exactly 50%
     expect(checkEnrageThresholds(dragon)).toBe(0);
-    dragon.hp = 80; // crosses 50% and 25% together
+    dragon.hp = Math.floor(max * 0.25) - 1; // crosses 50% and 25% together
     expect(checkEnrageThresholds(dragon)).toBe(2);
     expect(dragon.pendingEnrageUses).toBe(3);
   });
@@ -51,12 +52,11 @@ describe('action priority', () => {
 });
 
 describe('weighted attack selection', () => {
-  it('uses 40/30/20/10 weights', () => {
+  it('picks each attack within its configured weight band', () => {
     const dragon = freshDragon();
-    expect(selectWeightedAttack(dragon, 1, constantRng(0))).toBe('claw');
-    expect(selectWeightedAttack(dragon, 1, constantRng(0.45))).toBe('fireBreath');
-    expect(selectWeightedAttack(dragon, 1, constantRng(0.75))).toBe('tailStrike');
-    expect(selectWeightedAttack(dragon, 1, constantRng(0.95))).toBe('fireStorm');
+    for (const id of ['claw', 'fireBreath', 'tailStrike', 'fireStorm']) {
+      expect(selectWeightedAttack(dragon, 1, constantRng(pickRoll(id)))).toBe(id);
+    }
   });
 
   it('excludes Fire Storm on cooldown or with pending Enrage, and renormalizes', () => {
@@ -64,8 +64,8 @@ describe('weighted attack selection', () => {
     dragon.cooldowns.fireStorm = 5;
     expect(eligibleAttacks(dragon, 4)).not.toContain('fireStorm');
     expect(eligibleAttacks(dragon, 5)).toContain('fireStorm');
-    // 0.95 of 90 total weight lands in Tail Strike when Fire Storm is excluded.
-    expect(selectWeightedAttack(dragon, 4, constantRng(0.95))).toBe('tailStrike');
+    // With Fire Storm excluded, the remaining weights renormalize: the top roll is Tail Strike.
+    expect(selectWeightedAttack(dragon, 4, constantRng(0.9999))).toBe('tailStrike');
 
     const angry = freshDragon();
     angry.pendingEnrageUses = 1;
